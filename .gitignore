@@ -11,5 +11,4 @@ public/
 *.swp
 *.swo
 *~
-themes/*/.*
-themes/*/.git*
+themes/*/
