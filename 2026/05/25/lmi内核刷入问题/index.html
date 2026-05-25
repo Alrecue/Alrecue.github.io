@@ -4,11 +4,11 @@
 <html lang="zh-cn" xmlns:v-bind="http://www.w3.org/1999/xhtml">
 
 <head>
-    <title>Archive: 2023 - Blog</title>
+    <title>lmi内核刷入问题 - Blog</title>
 <meta charset="utf-8">
 <meta name="X-UA-Compatible" content="IE=edge">
 <meta name="author" content="Alrecue">
-<meta name="description" content="A Blog Powered By Hexo">
+<meta name="description" content="报错为Magisk detected! Patching kernel so reflashing Magisk ...">
 <meta name="keywords" content="">
 
 <link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml">
@@ -20,7 +20,7 @@
     <meta name="renderer" content="webkit">
     <meta name="theme-color" content="#ffffff">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha256-eSi1q2PG6J7g7ib17yAaWMcrr5GrtohYChqibrV7PBE=" crossorigin="anonymous">
-<link rel="stylesheet" href="/css/journal.css?97961857">
+<link rel="stylesheet" href="/css/journal.css?96485658">
 
 <script src="/js/loadCSS.js"></script>
 <script>
@@ -143,53 +143,60 @@
         </a>
 
         
-        
-
-        
-
-        
-        
     </div>
 </div>
 
+
+
 <div ref="streamContainer" class="stream-container">
     <div class="post-list-container post-list-container-shadow">
-        
-        
-        <div class="post-item-wrapper post-item-wrapper-no-hover">
-            <div class="post-item post-item-no-gaps">
-                <div class="post-item-info-wrapper">
-                    <div class="post-item-title  post-item-title-small">
+        <div class="post">
+            <div class="post-head-wrapper-text-only"
+                 style="background-image: url('')">
+                <div class="post-title">
+                    lmi内核刷入问题
+                    <div class="post-meta">
+                        <time datetime="2026-05-25T11:16:48.000Z" itemprop="datePublished">
+                            2026-05-25 19:16
+                        </time>&nbsp;
                         
-                        <a href="/archives/2023/01">
-                            2023 / 01
-                        </a>
-                        
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-
-        <a href="/2023/01/25/hello-world/" class="a-block">
-            <div class="post-item-wrapper">
-                <div class="post-item post-item-no-gaps">
-                    <div class="post-item-info-wrapper">
-                        <div class="post-item-title">
-                            Hello World
-                        </div>
-                        <div class="post-item-meta">
-                            2023-01-25
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </a>
-
-        
-    </div>
     
+                        
+                    </div>
+                </div>
+            </div>
+    
+            <div class="post-body-wrapper">
+                <div class="post-body">
+                    <p>报错为<code>Magisk detected! Patching kernel so reflashing Magisk is not necessary... 刷写失败</code></p>
+<p>原因是在注入Magisk环境变量时通过<code>export $(cat .magisk)</code>直接导出文件内容作为shell变量。但是由于<code>.magisk</code>文件中包含了非法格式的变量名,shell报错并强制中止脚本导致刷写失败。</p>
+<p>##解决方式<br>将原<code>ak3-core.sh</code>脚本中的:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[ ! -f .magisk ] &amp;&amp; magiskboot cpio ramdisk.cpio &quot;extract .backup/.magisk .magisk&quot;;</span><br><span class="line">export $(cat .magisk);</span><br><span class="line">for fdt in dtb extra kernel_dtb recovery_dtbo; do</span><br><span class="line">  [ -f $fdt ] &amp;&amp; magiskboot dtb $fdt patch; </span><br><span class="line">  # remove dtb verity/avb</span><br><span class="line">done;</span><br></pre></td></tr></table></figure>
+<p>修改为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[ ! -f .magisk ] &amp;&amp; magiskboot cpio ramdisk.cpio &quot;extract .backup/.magisk .magisk&quot;;</span><br><span class="line">[ -f .magisk ] &amp;&amp; while IFS=&#x27;=&#x27; read key value; do</span><br><span class="line">  case $key in</span><br><span class="line">    [A-Za-z_][A-Za-z0-9_]*)</span><br><span class="line">      export $key=&quot;$value&quot;</span><br><span class="line">    ;;</span><br><span class="line">  esac;</span><br><span class="line">done &lt; .magisk;</span><br><span class="line">for fdt in dtb extra kernel_dtb recovery_dtbo; do</span><br><span class="line">  [ -f $fdt ] &amp;&amp; magiskboot dtb $fdt patch;</span><br><span class="line">done;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>设备为lmi，底包LineageOS23.2，刷入AviumUI_GSI 16.2.1</p>
+</blockquote>
 
+                </div>
+            </div>
+    
+            <nav class="post-pagination">
+    
+    <span class="page-number"></span>
+    
+    <a class="older-posts" href="/2026/05/21/BW%E4%B9%8B%E8%A1%8C/">
+        Next post<br>BW之行
+    </a>
+    
+</nav>
+
+    
+            
+
+
+        </div>
+    </div>
     <div class="single-column-footer">
     Proudly published with Hexo<br>
     
@@ -210,7 +217,9 @@
         integrity="sha256-FtWfRI+thWlNz2sB3SJbwKx5PgMyKIVgwHCTwa3biXc=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/smooth-scroll@14.2.1/dist/smooth-scroll.polyfills.min.js"
         integrity="sha256-CI4Gq5E0io1Pv0xM3qPM+NUIOhbIBvC3GiN1Y4KhXpw=" crossorigin="anonymous"></script>
-<script src="/js/journal.js?92086289"></script>
+<script src="/js/journal.js?51814904"></script>
+
+
 
 </body>
 </html>
